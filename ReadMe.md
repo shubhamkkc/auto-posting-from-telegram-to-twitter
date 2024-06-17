@@ -118,9 +118,7 @@ This Node.js project allows you to automatically post messages and images from a
 - Ensure that your Telegram bot token and Twitter API keys are correctly set in the `.env` file.
 - Check the console for error messages if the bot is not functioning as expected.
 
-### License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ### Contributing
 
