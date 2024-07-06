@@ -33,11 +33,11 @@ async function postToTwitter(message) {
 
   try {
     // console.log(message)
-    if(message.ismessage){
+    if(message.media=="msg"){
 console.log("messageObj",message)
       const twee= await twitterClient.v2.readWrite.tweet({ text: message.message });
     console.log('Successfully posted message to Twitter:', twee);
-    }else{
+    }else if(message.media=="image"){
      console.log("messageObj",message)
       const imageResponse = await axios.get(message.fileUrl, { responseType: 'arraybuffer' });
       const imageData = Buffer.from(imageResponse.data, 'binary');
@@ -56,6 +56,23 @@ console.log("messageObj",message)
     console.log('Successfully posted message to Twitter:', twee);
 
 
+    } else if(message.media=="video"){
+       console.log("messageObj", message);
+      const videoResponse = await axios.get(message.fileUrl, { responseType: 'arraybuffer' });
+      const videoData = Buffer.from(videoResponse.data, 'binary');
+
+      // Upload video to Twitter
+      console.log("Upload video to Twitter");
+      const mediaId = await twitterClient.v1.uploadMedia(videoData, { mimeType:  'video/mp4'});
+      console.log("uploading video to Twitter", mediaId);
+
+      const twee = await twitterClient.v2.tweet({
+        text: message.message, 
+        media: {
+          media_ids: [mediaId]
+        }
+      });
+      console.log('Successfully posted message to Twitter:', twee);
     }
    
   } catch (error) {
@@ -71,9 +88,9 @@ try {
   if (msg.text) {
         message = msg.text;
          console.log('New message received from Telegram channel:', msg);
-    postToTwitter({ismessage:true,message:message});
+    postToTwitter({media:"msg",message:message});
       }
-      if (msg.photo && msg.photo.length > 0) {
+      else if (msg.photo && msg.photo.length > 0) {
         message=msg.caption;
         // Handle multiple sizes of photos, choose the largest one
         const photo = msg.photo[msg.photo.length - 1];
@@ -83,10 +100,19 @@ try {
         const fileUrl = await bot.getFileLink(file_id);
 
         // Post message with image to Twitter
-        await postToTwitter({ismessage:false,message:message,fileUrl:fileUrl});
+        await postToTwitter({media:"image",message:message,fileUrl:fileUrl});
 
         console.log('New image with caption posted to Twitter:', message);
-      } 
+      } else if(msg.video){
+        console.log(msg)
+         message = msg.caption;
+      const file_id = msg.video.file_id;
+
+      const fileUrl = await bot.getFileLink(file_id);
+      await postToTwitter({ media:"video", message:message,fileUrl: fileUrl });
+
+      console.log('New video with caption posted to Twitter:', message);
+      }
 
 
    
